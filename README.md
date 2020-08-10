@@ -11,7 +11,7 @@ How to use?
 5. Select a Mesh in the scene and press `Tab` into edit mode.
 6. Once you are satisfied with the mesh, press `Transform to PBD`.
 7. Choose your export location and export filename.
-8. Press `Export Data for Unity`
+8. Press `Export Data for Unity`.
 
 License
 ---
