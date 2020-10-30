@@ -1,4 +1,4 @@
-Cloth Exporter Addon
+Cloth Exporter Blender Addon
 ---
 This is a custom made [Blender](https://blender.org) Addon that is targeted for the use case of my [GPUClothSimulationInUnity](https://github.com/voxell-tech/GPUClothSimulationInUnity) project.
 

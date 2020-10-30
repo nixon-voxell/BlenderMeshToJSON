@@ -13,9 +13,9 @@
 
 bl_info = {
   "name" : "Cloth Exporter",
-  "author" : "Nixon",
+  "author" : "Voxell",
   "description" : "Exports data of cloth mesh",
-  "blender" : (2, 80, 0),
+  "blender" : (2, 90, 0),
   "version" : (0, 0, 1),
   "location" : "View3D",
   "warning" : "This is still in an extremely early version, it might break your work or crash Blender...",
@@ -36,7 +36,7 @@ classes = (
   # panels
   ClothExporter_PT_Panel,
 
-  # properties
+  # prop_ClothExp
   Properties
   )
 
@@ -44,12 +44,12 @@ def register():
   for c in classes:
     bpy.utils.register_class(c)
   
-  bpy.types.Scene.properties = bpy.props.PointerProperty(type=Properties)
+  bpy.types.Scene.prop_ClothExp = bpy.props.PointerProperty(type=Properties)
 
 def unregister():
   for c in classes:
     bpy.utils.unregister_class(c)
 
-  del bpy.types.Scene.properties
+  del bpy.types.Scene.prop_ClothExp
 
 # register, unregister = bpy.utils.register_classes_factory(classes)

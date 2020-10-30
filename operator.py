@@ -15,11 +15,12 @@ cloth_mesh = None
 
 class Particle(object):
 
-  def __init__(self, particle, inv_mass):
+  def __init__(self, particle, inv_mass, mass):
     self.pos = list(particle.co)
     self.predicted_pos = list(particle.co)
     self.veloctiy = [0, 0, 0]
     self.inv_mass = inv_mass
+    self.mass = mass
     self.idx = particle.index
     self.phase = 0
 
@@ -32,12 +33,13 @@ class Particle(object):
   def to_dict(self):
     final_dict = dict()
 
-    final_dict["_pos"] = self.pos
-    final_dict["_predictedPos"] = self.predicted_pos
-    final_dict["_invMass"] = self.inv_mass
-    final_dict["_idx"] = self.idx
-    final_dict["_phase"] = self.phase
-    final_dict["_veloctiy"] = self.veloctiy
+    final_dict["pos"] = self.pos
+    final_dict["predictedPos"] = self.predicted_pos
+    final_dict["invMass"] = self.inv_mass
+    final_dict["mass"] = self.mass
+    final_dict["idx"] = self.idx
+    final_dict["phase"] = self.phase
+    final_dict["veloctiy"] = self.veloctiy
 
     return final_dict
 
@@ -231,7 +233,7 @@ class ClothExporter_OT_Export(bpy.types.Operator):
 
   def execute(self, context):
 
-    properties = context.scene.properties
+    prop_ClothExp = context.scene.prop_ClothExp
     obj = bpy.context.active_object
     mesh = bmesh.from_edit_mesh(obj.data)
 
@@ -248,7 +250,7 @@ class ClothExporter_OT_Export(bpy.types.Operator):
     # particles
     for p in mesh.verts:
       i = p.index
-      particles[i] = Particle(p, properties.inv_mass).to_dict()
+      particles[i] = Particle(p, prop_ClothExp.inv_mass, prop_ClothExp.mass).to_dict()
 
     assert not None in particles
 
@@ -283,7 +285,7 @@ class ClothExporter_OT_Export(bpy.types.Operator):
     # print(len(sequence))
 
     # save to filepath based on filename and current selected directory
-    filepath = os.path.join(properties.directory, "%s.json" % properties.filename)
+    filepath = os.path.join(prop_ClothExp.directory, "%s.json" % prop_ClothExp.filename)
     filepath = bpy.path.abspath(filepath)
 
     json.dump(

@@ -1,7 +1,7 @@
 import bpy
 
 def update_inv_mass(self, context):
-  context.scene.properties.inv_mass = 1 / context.scene.properties.mass
+  self.inv_mass = 1 / self.mass
 
 class Properties(bpy.types.PropertyGroup):
   props = bpy.props
@@ -27,11 +27,6 @@ class Properties(bpy.types.PropertyGroup):
     name="Directory",
     subtype="DIR_PATH"
     )
-
-  # max_frame = props.IntProperty(
-  #   name="Max Frame",
-  #   default=250
-  # )
 
   # compression_stiffness = props.FloatProperty(
   #   name="Compression Stiffness",
