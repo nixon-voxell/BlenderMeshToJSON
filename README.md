@@ -12,7 +12,7 @@ How to use?
 6. Once you are satisfied with the mesh, press `Transform to PBD`.
 7. Choose your export location and export filename.
 8. Press `Export Data for Unity`.
-9. You will get a exported JSON file.
+9. You will get an exported JSON file.
 
 License
 ---
