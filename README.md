@@ -1,7 +1,7 @@
 Cloth Exporter Blender Addon
 ---
 This is a custom made [Blender](https://blender.org) Addon that is targeted for the use case of my [GPUClothSimulationInUnity](https://github.com/voxell-tech/GPUClothSimulationInUnity) project.
-The first stage of this add-on for blender. This add-on converts any face with more than 3 vertices into proportional triangles.
+This add-on converts any face with more than 3 vertices into proportional triangles.
 
 How to use?
 ---
