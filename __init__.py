@@ -16,7 +16,7 @@ bl_info = {
   "author" : "Voxell",
   "description" : "Exports data of cloth mesh",
   "blender" : (2, 90, 0),
-  "version" : (0, 0, 1),
+  "version" : (0, 1, 0),
   "location" : "View3D",
   "warning" : "This is still in an extremely early version, it might break your work or crash Blender...",
   "category" : "Generic"
