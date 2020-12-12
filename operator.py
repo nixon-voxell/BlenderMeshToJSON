@@ -12,10 +12,11 @@ global cloth_mesh
 original_mesh = None
 cloth_mesh = None
 
+# TODO: move from particle seperation to particle list
 
 class Particle(object):
 
-  def __init__(self, particle, inv_mass, mass):
+  def __init__(self, particle, uv_layer, inv_mass, mass):
     self.pos = list(particle.co)
     self.predicted_pos = list(particle.co)
     self.veloctiy = [0, 0, 0]
@@ -23,6 +24,9 @@ class Particle(object):
     self.mass = mass
     self.idx = particle.index
     self.phase = 0
+
+    self.uv_layer = uv_layer
+    self.uv = list(particle.link_loops[0][uv_layer].uv);
 
   def __lt__(self, other):
     return self.idx < other.idx
@@ -35,30 +39,27 @@ class Particle(object):
 
     final_dict["pos"] = self.pos
     final_dict["predictedPos"] = self.predicted_pos
+    final_dict["veloctiy"] = self.veloctiy
     final_dict["invMass"] = self.inv_mass
     final_dict["mass"] = self.mass
     final_dict["idx"] = self.idx
     final_dict["phase"] = self.phase
-    final_dict["veloctiy"] = self.veloctiy
+    final_dict["uv"] = self.uv
 
     return final_dict
 
 class Edge(object):
 
   def __init__(self, edge):
-    e = []
+    self.p = [v.index for v in edge.verts]
+    self.restLength = (edge.verts[0].co - edge.verts[1].co).length
 
-    for p in edge.verts:
-      e.append(p)
+    self.neighbors = list()
+    for vert in edge.verts:
+      for link_edge in vert.link_edges:
+        if link_edge != edge:
+          self.neighbors.append(link_edge.index)
 
-    self.restLength = (e[0].co - e[1].co).length
-    e = [e.index for e in e]
-    self.p0 = min(e)
-    self.p1 = max(e)
-
-    assert self.p0 != self.p1
-
-    self.edge_idx = [self.p0, self.p1]
     self.idx = edge.index
 
   def __lt__(self, other):
@@ -68,39 +69,29 @@ class Edge(object):
     return self.idx > other.idx
 
   def has_particle(self, particle):
-    return particle.idx in self.edge_idx
-
-  def has_idx(self, idx):
-    return idx in self.edge_idx
+    return particle.idx in self.p
 
   def to_dict(self):
     final_dict = dict()
 
-    final_dict["p0"] = self.p0
-    final_dict["p1"] = self.p1
-    final_dict["restLength"] = self.restLength
+    final_dict["p"] = self.p
+    final_dict["neighbors"] = self.neighbors
     final_dict["idx"] = self.idx
+    final_dict["restLength"] = self.restLength
 
     return final_dict
 
 class Triangle(object):
 
   def __init__(self, triangle):
-    t = []
-    for p in triangle.verts:
-      t.append(p.index)
+    self.p = [v.index for v in triangle.verts]
 
-    self.p0 = min(t)
-    t.remove(self.p0)
-    self.p2 = max(t)
-    t.remove(self.p2)
-    self.p1 = t[0]
+    self.neighbors = list()
+    for vert in triangle.verts:
+      for link_triangle in vert.link_faces:
+        if link_triangle != triangle:
+          self.neighbors.append(link_triangle.index)
 
-    assert self.p0 != self.p1
-    assert self.p1 != self.p2
-    assert self.p2 != self.p0
-
-    self.triangle_idx = [self.p0, self.p1, self.p2]
     self.idx = triangle.index
 
   def __lt__(self, other):
@@ -113,35 +104,33 @@ class Triangle(object):
     return edge.p0 in self.triangle_idx and edge.p1 in self.triangle_idx
 
   def has_particle(self, particle):
-    return particle.idx in self.triangle_idx
-
-  def has_idx(self, idx):
-    return idx in self.triangle_idx
+    return particle.idx in self.p
 
   def to_dict(self):
     final_dict = dict()
 
-    final_dict["p0"] = self.p0
-    final_dict["p1"] = self.p1
-    final_dict["p2"] = self.p2
+    final_dict["p"] = self.p
+    final_dict["neighbors"] = self.neighbors
     final_dict["idx"] = self.idx
 
     return final_dict
 
 class NeighborTriangles(object):
 
-  def __init__(self, triangles, edge, idx):
+  def __init__(self, edge, edge2neighbor_triangle):
+    triangles = edge.link_faces
+    verts = edge.verts
     t1 = list(triangles[0].verts)
     t2 = list(triangles[1].verts)
 
-    for p in edge:
+    for p in verts:
       t1.remove(p)
       t2.remove(p)
 
     p0 = t1[0]
     p1 = t2[0]
-    p2 = edge[0]
-    p3 = edge[1]
+    p2 = verts[0]
+    p3 = verts[1]
 
     n1 = (p2.co - p0.co).cross(p3.co - p0.co)
     n1 /= n1.dot(n1)
@@ -150,22 +139,23 @@ class NeighborTriangles(object):
 
     n1.normalize()
     n2.normalize()
-    self.rest_angle = math.acos(n1.dot(n2))
 
-    self.p0 = p0.index
-    self.p1 = p1.index
-    self.p2 = p2.index
-    self.p3 = p3.index
+    try:
+      self.rest_angle = math.acos(n1.dot(n2))
+    except Exception as e:
+      print(e)
+      self.rest_angle = 0.0
 
-    assert self.p0 != self.p1
-    assert self.p0 != self.p2
-    assert self.p0 != self.p3
-    assert self.p1 != self.p2
-    assert self.p1 != self.p3
-    assert self.p2 != self.p3
+    _p = [p0, p1, p2, p3]
+    self.p = [p.index for p in _p]
 
-    self.neighbor_triangle_idx = [self.p0, self.p1, self.p2, self.p3]
-    self.idx = idx
+    self.neighbors = list()
+    for vert in verts:
+      for link_edge in vert.link_edges:
+        if len(link_edge.link_faces) == 2 and link_edge != edge:
+          self.neighbors.append(edge2neighbor_triangle[link_edge.index])
+
+    self.idx = edge2neighbor_triangle[edge.index]
 
   def __lt__(self, other):
     return self.idx < other.idx
@@ -176,12 +166,10 @@ class NeighborTriangles(object):
   def to_dict(self):
     final_dict = dict()
 
-    final_dict["p0"] = self.p0
-    final_dict["p1"] = self.p1
-    final_dict["p2"] = self.p2
-    final_dict["p3"] = self.p3
-    final_dict["restAngle"] = self.rest_angle
+    final_dict["p"] = self.p
+    final_dict["neighbors"] = self.neighbors
     final_dict["idx"] = self.idx
+    final_dict["restAngle"] = self.rest_angle
 
     return final_dict
 
@@ -189,7 +177,7 @@ class ClothExporter_OT_Transform(bpy.types.Operator):
   bl_idname = "cloth_exporter.transform"
   bl_label = "Cloth Exporter"
   bl_description = "Transform mesh into a structure that is easy to simulate"
-  bl_info = "v0.0.1"
+  bl_info = "v0.0.2"
 
   def execute(self, context):
 
@@ -247,10 +235,12 @@ class ClothExporter_OT_Export(bpy.types.Operator):
     neighbor_triangles = []
     sequence = []
 
+    uv_layer = mesh.loops.layers.uv.active
+
     # particles
     for p in mesh.verts:
       i = p.index
-      particles[i] = Particle(p, prop_ClothExp.inv_mass, prop_ClothExp.mass).to_dict()
+      particles[i] = Particle(p, uv_layer, prop_ClothExp.inv_mass, prop_ClothExp.mass).to_dict()
 
     assert not None in particles
 
@@ -268,13 +258,16 @@ class ClothExporter_OT_Export(bpy.types.Operator):
 
     assert not None in triangles
 
+    # edge to neighbor triangle index
+    edge2neighbor_triangle = dict()
+    for e in mesh.edges:
+      if len(e.link_faces) == 2:
+        edge2neighbor_triangle[e.index] = len(edge2neighbor_triangle)
+
     # neighbor triangles
     for e in mesh.edges:
       if len(e.link_faces) == 2:
-        neighbor_triangles.append(NeighborTriangles(
-          e.link_faces,
-          e.verts,
-          len(neighbor_triangles)).to_dict())
+        neighbor_triangles.append(NeighborTriangles(e, edge2neighbor_triangle).to_dict())
 
     # vertex sequence
     for f in mesh.faces:
