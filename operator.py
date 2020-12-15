@@ -281,13 +281,20 @@ class ClothExporter_OT_Export(bpy.types.Operator):
     filepath = os.path.join(prop_ClothExp.directory, "%s.json" % prop_ClothExp.filename)
     filepath = bpy.path.abspath(filepath)
 
+    edge_cliques = self.create_cliques(edges)
+    triangle_cliques = self.create_cliques(triangles)
+    neighbor_triangle_cliques = self.create_cliques(neighbor_triangles)
+
     json.dump(
       {
         "particles": particles,
         "edges": edges,
         "triangles": triangles,
         "neighborTriangles": neighbor_triangles,
-        "sequence": sequence
+        "sequence": sequence,
+        "edgeCliques": edge_cliques,
+        "triCliques": triangle_cliques,
+        "neighborTriCliques": neighbor_triangle_cliques
       },
       open(filepath, "w")
     )
@@ -299,8 +306,25 @@ class ClothExporter_OT_Export(bpy.types.Operator):
     layout = self.layout
     layout.prop(self, "mass")
 
-# def my_handler(scene):
-#   print("Frame Change", scene.frame_current)
+  @classmethod
+  def bron_kerbosch1(self, clique, candidates, excluded, constraints, output_clique):
+    # Naive Bron–Kerbosch algorithm
+    if not candidates and not excluded:
+      output_clique.append(clique)
+      return
 
+    for v in list(candidates):
+      candidates.remove(v)
+      new_candidates = candidates.intersection(constraints[v]["neighbors"])
+      new_excluded = excluded.intersection(constraints[v]["neighbors"])
+      self.bron_kerbosch1(clique + [v], new_candidates, new_excluded, constraints, output_clique)
+      excluded.add(v)
 
-# bpy.app.handlers.frame_change_pre.append(my_handler)
+  @classmethod
+  def create_cliques(self, constraints):
+    nodes = set(range(len(constraints)))
+    output_cliques = []
+    self.bron_kerbosch1([], nodes, set(), constraints, output_cliques)
+    output_cliques.sort(key=len, reverse=True)
+
+    return output_cliques
