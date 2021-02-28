@@ -234,6 +234,7 @@ class ClothExporter_OT_Export(bpy.types.Operator):
     triangles = [None for i in range(total_triangles)]
     neighbor_triangles = []
     sequence = []
+    sequence_length = []
 
     uv_layer = mesh.loops.layers.uv.active
 
@@ -269,21 +270,23 @@ class ClothExporter_OT_Export(bpy.types.Operator):
       if len(e.link_faces) == 2:
         neighbor_triangles.append(NeighborTriangles(e, edge2neighbor_triangle).to_dict())
 
-    # vertex sequence
-    for f in mesh.faces:
-      for p in f.verts:
-        sequence.append(p.index)
+    # sequence
+    for p in mesh.verts:
+      sequence_length.append(len(p.link_faces))
+      for f in p.link_faces:
+        for pp in f.verts:
+          sequence.append(pp.index)
 
-    # print(sequence)
-    # print(len(sequence))
+    for i in range(1, len(sequence_length)):
+      sequence_length[i] += sequence_length[i-1]
 
     # save to filepath based on filename and current selected directory
     filepath = os.path.join(prop_ClothExp.directory, "%s.json" % prop_ClothExp.filename)
     filepath = bpy.path.abspath(filepath)
 
-    edge_cliques = self.create_cliques(edges)
-    triangle_cliques = self.create_cliques(triangles)
-    neighbor_triangle_cliques = self.create_cliques(neighbor_triangles)
+    # edge_cliques = self.create_cliques(edges)
+    # triangle_cliques = self.create_cliques(triangles)
+    # neighbor_triangle_cliques = self.create_cliques(neighbor_triangles)
 
     json.dump(
       {
@@ -292,9 +295,10 @@ class ClothExporter_OT_Export(bpy.types.Operator):
         "triangles": triangles,
         "neighborTriangles": neighbor_triangles,
         "sequence": sequence,
-        "edgeCliques": edge_cliques,
-        "triCliques": triangle_cliques,
-        "neighborTriCliques": neighbor_triangle_cliques
+        "sequenceLength": sequence_length,
+        # "edgeCliques": edge_cliques,
+        # "triCliques": triangle_cliques,
+        # "neighborTriCliques": neighbor_triangle_cliques
       },
       open(filepath, "w")
     )
