@@ -10,5 +10,5 @@
   "python.analysis.extraPaths": [
     "D:/blender_autocomplete/2.90"
   ],
-  // "kite.enableSnippets": false,
+  "python.analysis.typeCheckingMode": "off"
 }

@@ -1,10 +1,10 @@
-Cloth Exporter Blender Addon
----
+# BlenderMeshToJSON Addon
+
 This is a custom made [Blender](https://blender.org) Addon that is targeted for the use case of my [GPUClothSimulationInUnity](https://github.com/voxell-tech/GPUClothSimulationInUnity) project.
 This add-on converts any face with more than 3 vertices into proportional triangles.
 
-How to use?
----
+## How to use?
+
 1. Zip this repository in a `.zip` file or download a [release](https://github.com/voxell-tech/ClothExporter/releases).
 2. Open Blender, go to `Edit > Preferences > Add-ons > Install` and choose the `.zip` file.
 3. In the 3D View port, press `n` to view the side bar.
@@ -15,6 +15,6 @@ How to use?
 8. Press `Export Data for Unity`.
 9. You will get an exported JSON file.
 
-License
----
+## License
+
 This project is under the GNU Public License, Version 3.

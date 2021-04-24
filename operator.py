@@ -300,7 +300,8 @@ class ClothExporter_OT_Export(bpy.types.Operator):
         # "triCliques": triangle_cliques,
         # "neighborTriCliques": neighbor_triangle_cliques
       },
-      open(filepath, "w")
+      open(filepath, "w"),
+      indent=2
     )
 
     self.report({"INFO"}, f"Exported to Unity format in Json, {total_verts} vertices, {total_edges} edges, {total_triangles} triangles, {len(neighbor_triangles)} neighbor trianlges.")
