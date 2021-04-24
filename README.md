@@ -1,7 +1,7 @@
 # BlenderMeshToJSON Addon
 
 This is a custom made [Blender](https://blender.org) Addon that is targeted for the use case of my [GPUClothSimulationInUnity](https://github.com/voxell-tech/GPUClothSimulationInUnity) project.
-This add-on converts any face with more than 3 vertices into proportional triangles.
+This add-on converts any face with more than 3 vertices into proportional triangles (optional) and then exports it into a JSON file.
 
 ## How to use?
 
